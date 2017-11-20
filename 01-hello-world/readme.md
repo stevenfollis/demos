@@ -10,6 +10,8 @@ This demonstration highlights developing and running applications with Windows C
 
 * [Visual Studio 2017 Community Edition](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15) (Free)
 
+* PowerShell
+
 ## Setup
 
 ### Windows developer environment setup
@@ -171,28 +173,126 @@ The last feature of Visual Studio to call out involves greenfield applications r
 
 ### 3. Pushing an image into DTR
 
-Sharing of Docker images happens in the Docker Trusted Registry, or "DTR". The DTR is a central storage point for all Docker images across an organization, covering both Linux and Windows applications. A developer or continuous integration server will "push" a built Docker image from their environment to the DTR, where others in the organization can "pull" it to download and run the application. Visual Studio already built our application into a container with the tag `:dev`, which we can see in PowerShell.
+Sharing of Docker images happens through the Docker Trusted Registry, or "DTR". The DTR is a central storage point for all Docker images across an organization, covering both Linux and Windows applications. A developer or continuous integration server will "push" a built Docker image from their environment to the DTR, where others in the organization can "pull" it to download and run the application. Visual Studio already built our application into a container with the tag `:dev`, which we can see in PowerShell.
 
 ```powershell
 docker images
 ```
 
-Logging into our private DTR requires a username and password, which conveniently has been synced from Active Directory. After the login command we can push the image to DTR.
+Logging into our private DTR requires a username and password, which can be conveniently synced from Active Directory. 
 
 ```powershell
 docker login dtr.ishmael.in
-
-docker push dtr.ishmael.in/contoso/webapp:dev
 ```
+
+After the login command we can push the image to DTR. By default, Visual Studio built an image with the `:dev` tag that wired in the debugging support for a local developer. For uploading into DTR we prefer to build a "release" image, which we can generate by toggling the Solution Configuration box from **Debug** to **Release** and then re-building the solution. 
 
 ![screenshot](./media/013.png)
 
+Once the configuration has been toggled to **Release**, re-build the solution by either pressing **CTRL-F5** or via the Build menu. 
 
+![screenshot](./media/014.png)
 
+This will result in an image with the `:latest` tag, which can be started without the need for Visual Studio. To push the image from our local environment to DTR, execute a `docker push` command from PowerShell.
 
+```powershell
+docker push dtr.ishmael.in/contoso/webapp:latest
+```
+
+![screenshot](./media/015.png)
+
+Once an image has been pushed, DTR begins a binary-level security scan through each image layer. This scan is searching for known vulnerabilities, and uses 7 industry-standard CVE databases. Were there to be an issue identified, we can configure Webhooks to notify the operators that a vulnerability is present on a particular image. For clean scans, we also have the option of automatically promoting an image from a "dev" repo into a "test" repo, streamlining our quality assurance efforts. 
 
 ### 4. Deploying an image to a cluster with UCP
 
+With our image pushed and scanned by DTR, it is time to deploy a container to our cluster. Manging the entirety of the cluster is the Universal Control Plane, or "UCP". UCP is a single plane of glass that interfaces both with container specific constructs such as containers and secrets, but also monitors underlying infrastructure nodes. Its rich UI experience takes Docker management out of the command line and into a more convenient browser window. Think of UCP as the [SCOM](https://en.wikipedia.org/wiki/System_Center_Operations_Manager) (System Center Operations Manager) of the container world.
+
+>   Windows Containers [do not suppport](https://docs.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/swarm-mode#deploying-services-to-a-swarm) the ingress routing mesh, and published ports must use Host Mode + DNS Round Robin. This limitation [goes away](https://blogs.technet.microsoft.com/virtualization/2017/09/26/dockers-ingress-routing-mesh-available-with-windows-server-version-1709/) with Windows Server 1709, but 1709 is not currently supported in UCP. In the interim, a reverse-proxy in front of several Windows Container instances is an option.
+
+One of the key benefits of Docker containers is the abiilty to easily deploy and manage an entire solution via a declarative text file, or "Stack" file. Stack files could the web front end, API, and database tiers for a traditional 3-tier web application, and can even include sensitive Docker Secrets, virtual network configurations, storage mount setup. From a lifecycle management perspective, we can remove the entire solution in one operation, rather than having to track down pieces spread across multiple nodes.
+
+To demonstrate the deployment of multiple tiers, let's take our existing web app and add a high-performance [Traefik](https://traefik.io/) load balancer in front. This stack will deploy one container for Traefik, and one container for our web app, which can communicate over a virtual network.
+
+From the **Stacks** tab on the left hand nav, we'll **Create Stack** using the name `hello` and paste the following YAML file in:
+
+```yml
+version: '3.3'
+services:
+  lb:
+    image: traefik:latest
+    command: >
+      --web 
+      --docker 
+      --docker.swarmmode
+      --docker.watch
+      --docker.domain=apps.ishmael.in
+      --logLevel=DEBUG
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "80:80"
+      - 8080  
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
+  web:
+    image: dtr.ishmael.in/contoso/webapp:latest
+    ports:
+    - mode: host
+      target: 80
+    deploy:
+      endpoint_mode: dnsrr
+      labels:
+      - "traefik.port=80"
+      placement:
+        constraints:
+        - node.platform.os == windows
+```
+
+> Note: this Stack filesassumes you have a DNS entry setup; update the `--docker.domain` to match your domain name. Also, the Traefik port of 80 may conflict with existing Services if deploying to an existing cluster
+
+![screenshot](./media/016.png)
+
+Click **Create** and we can see that UCP deployed two Services. Wait until both turn green, and since Traefik handled setting up a subdomain for our application, open a browser tab to `http://hello-web.apps.ishmael.in/`. 
+
+![screenshot](./media/017.png)
+
+We have now used UCP to pull our Docker image from DTR and deploy it as a container onto a node within our cluster. If this node was to fail for any reason, UCP would work to re-schedule it onto a healthy node to maintain the availability of our application.
+
 ### 5. Scaling an application
 
+Our initial deployment consisted of a single container deployed to a single node, but we can easily scale the workload to meet demands. First, we'll open a simple Visualizer web application that graphically shows each container that is running on each node of our cluster. Using the filter box, currently we can see a single container for **hello_web** running on a Windows worker node.
+
+![screenshot](./media/018.png)
+
+Back in UCP, if we select the **hello_web** Service that was deployed as part of the Stack, we can adjust the **Scheduling** configuration.
+
+![screenshot](./media/019.png)
+
+By adjusting **Scale** to `5`, we can provision an additional 4 containers for our application. Click **Update** to apply the changes, and check the Visualizer to see the additional containers running on the cluster.
+
+> To show rolling updates, you can go back into Visual Studio, make an edit to the UI view, `Visual Studio re-build` -> `docker tag` -> `docker push` that new image up to DTR, or before the demo even starts, push a tagged image into the same repo on a tag other than `latest`. Feel free to `docker pull stevenfollis/howdy:2.0` then re-tag and push to DTR to match the screenshots below (it's the same ASP.NET web app, but I added a field in the UI to display the current container). I prefer the latter option as it's a smoother demo flow.
+
+UCP also gives us sophisticated abilities to manage how we roll updated code into production. Back in UCP, let's change our image tag to `dtr.ishmael.in/contoso/webapp:2.0`, and set for scheduling adjust the **Parallelism** to `1` and the **Update Delay** to `10`. This tells UCP to scale up one container at a time, waiting 10 seconds between each operation. By gradually "rolling" our updates onto the cluster, we can more readily detect failures and take corrective action. By default we have set UCP to pause an update, however we could automatically roll back the deployment to its previously known "good" state with an additional configuration. 
+
+![screenshot](./media/020.png)
+
+Back in the Visualizer web app, watch as we see a new containers startup one at a time, their indicator color turning from red to green to indicate a healthy, reponsive container.
+
+![screenshot](./media/021.png)
+
+Once the rolling update completes, refresh the application at `http://hello-web.apps.ishmael.in/` to see an updated application. Note the addition of the container ID placed within the start page. Refresh the page to see the container ID update, since all 5 instances of the application are being load balanced (IIS takes a few seconds to warm up during the first request, so the reload may not be immediate).
+
+![screenshot](./media/022.png)
+
+## Conclusion
+
+Today we've seen how Windows Containers are an efficient strategy to migrate and manage traditional .NET applications. First, we spun up 5 IIS instances in mere seconds. Second, we created an ASP.NET MVC application and used the deep integration with Visual Studio to build a Docker image. We then pushed that image into Docker Trusted Registry, scanned the image for known vulnerabilities, and deployed the image to a cluster of virtual machine nodes. Finally, we scaled up that application to meet increased demand, and executed a rolling update with new code that maturely handled our deployment process.
+
 ## Clean Up
+
+* Delete the Docker Stack from the cluster
+
+* Remove the images from the DTR repository
