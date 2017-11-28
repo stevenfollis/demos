@@ -48,6 +48,10 @@ This demonstration highlights developing and running applications with Windows C
 
 1. Run Windows Update to install every single patch available. Many container features require the latest patches being installed. Skipping this will cause pain.
 
+1. Setup both the [Docker Engine](https://docs.docker.com/engine/installation/windows/docker-ee/#install-docker-ee) and configure the node to be a [UCP worker](https://docs.docker.com/datacenter/ucp/2.2/guides/admin/configure/join-windows-worker-nodes/#configure-the-windows-node). Both are necessary to join the node to a Swarm.
+
+    > If the Windows node hangs when joining, it is likely due to firewall rules not being configured correctly with the setup script. Remove thd node, re-run the script, and re-join 
+
 1. Windows container images are often multiple gigabytes in size. Pre-pull a variety of common [Microsoft images](https://hub.docker.com/u/microsoft/) to the node(s) prior to any demos to ensure there is not a delay mid-demo.
 
     ```sh
