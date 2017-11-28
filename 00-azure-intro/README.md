@@ -20,13 +20,19 @@ Culled from the [Azure Docs](https://docs.microsoft.com/en-us/azure/azure-resour
 Docker has created a formal Edition known as [Docker EE for Azure](https://docs.docker.com/docker-for-azure/why/). EE for Azure is an ARM Template distributed through the Azure Marketplace that both provisions Azure infrastructure and configures an EE cluster (DTR + UCP).
 
 Pros
+
 * Simple setup - kickoff the template and in 20 minutes you're ready to roll
+
 * Requires zero Azure knowledge - create template, get UCP URL, demonstrate
+
 * Scalable worker nodes - click a button and can scale in/out in minutes
 
 Cons
+
 * Requires setup of a Service Principal
+
 * Base OS is a custom Moby build that has shown instability
+
 * If you scale your manager nodes, you're going to have a bad time
 
 ### Roll your own
@@ -34,22 +40,26 @@ Cons
 While Docker EE for Azure is a fully automated experience and great for quick demonstrations, many customers report enough instability to warrant a custom EE implementation. In this approach, Docker EE is deployed on Azure infrastructure without the formal edition template; instead, virtual machines (or better - [Virtual Machine Scale Sets](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-overview)) are provisioned and EE installed.
 
 Pros
+
 * Complete control - do not have to rely on opinionated decisions made by EE for Azure
+
 * OS options - customers that have a specific blessed OS often want to see EE on that OS rather than Moby
 
 Cons
+
 * Everything is manual - there are a few ARM Templates that provide automation, but nothing as robust as the EE for Azure Edition
+
 * Requires more knowledge of Azure to be successful
 
 ## Azure Portal
 
-Most users' first experience with Azure is the [Azure Portal](https://portal.azure.com). It is a browser-based web application that contains an exhaustive array of management screens for Azure resources. 
+Most users' first experience with Azure is the [Azure Portal](https://portal.azure.com). It is a browser-based web application that contains an exhaustive array of management screens for Azure resources.
 
 There is also a [mobile application](https://azure.microsoft.com/en-us/features/azure-portal/mobile-app/) that can be used to manage Azure resources.
 
 ## Azure Command Line Interface (CLI)
 
-Azure has a well-regarded CLI for managing the lifecycle of Azure Resources. [Install](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest#a-namemacosinstall-on-macos) the CLI for your particular operating system and [login](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli?view=azure-cli-latest#interactive-log-in) to your account by running `az login`. 
+Azure has a well-regarded CLI for managing the lifecycle of Azure Resources. [Install](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest#a-namemacosinstall-on-macos) the CLI for your particular operating system and [login](https://docs.microsoft.com/en-us/cli/azure/authenticate-azure-cli?view=azure-cli-latest#interactive-log-in) to your account by running `az login`.
 
 A capable alternative is the [Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) integrated into the Azure Portal.
 

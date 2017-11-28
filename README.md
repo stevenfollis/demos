@@ -1,6 +1,6 @@
 # Demonstrating Docker EE with the Windows Ecosystem
 
-This repository is a collection of demonstration scripts and supporting files for showcasing the value of [Docker Enterprise Edition](https://www.docker.com/enterprise-edition) within the Windows ecosystem. 
+This repository is a collection of demonstration scripts and supporting files for showcasing the value of [Docker Enterprise Edition](https://www.docker.com/enterprise-edition) within the Windows ecosystem.
 
 ## Demonstrations
 

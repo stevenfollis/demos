@@ -3,7 +3,7 @@
 This demonstration highlights developing and running applications with Windows Containers and Docker Enterprise Edition.
 
 ## Pre-Requisites
-    
+
 * Docker EE cluster with minimum of one [Windows Server 2016 worker node](https://docs.docker.com/datacenter/ucp/2.2/guides/admin/configure/join-windows-worker-nodes/)
 
 * Windows developer environment. This can be the same VM running the worker node, a separate VM, or a laptop running Windows 10 Fall Creators Update.
@@ -16,7 +16,7 @@ This demonstration highlights developing and running applications with Windows C
 
 ### Windows developer environment setup
 
-1.  Create a sample application in Visual Studio. 
+1. Create a sample application in Visual Studio.
 
     Select **File** -> **New** -> **Project**.
 
@@ -40,7 +40,7 @@ This demonstration highlights developing and running applications with Windows C
 
     ![screenshot](./media/007.png)
 
-1. Windows Server 2016 ships with an older version of Internet Explorer, which does not always properly display UCP & DTR. [Download](https://www.google.com/chrome/browser) a newer browser for the demonstration. 
+1. Windows Server 2016 ships with an older version of Internet Explorer, which does not always properly display UCP & DTR. [Download](https://www.google.com/chrome/browser) a newer browser for the demonstration.
 
 1. Increase the default font size in a running PowerShell window by right-clicking the top toolbar, selecting **Properties**, clicking the **Font** tab, and selecting ~**16**.
 
@@ -50,7 +50,7 @@ This demonstration highlights developing and running applications with Windows C
 
 1. Setup both the [Docker Engine](https://docs.docker.com/engine/installation/windows/docker-ee/#install-docker-ee) and configure the node to be a [UCP worker](https://docs.docker.com/datacenter/ucp/2.2/guides/admin/configure/join-windows-worker-nodes/#configure-the-windows-node). Both are necessary to join the node to a Swarm.
 
-    > If the Windows node hangs when joining, it is likely due to firewall rules not being configured correctly with the setup script. Remove thd node, re-run the script, and re-join 
+    > If the Windows node hangs when joining, it is likely due to firewall rules not being configured correctly with the setup script. Remove thd node, re-run the script, and re-join
 
 1. Windows container images are often multiple gigabytes in size. Pre-pull a variety of common [Microsoft images](https://hub.docker.com/u/microsoft/) to the node(s) prior to any demos to ensure there is not a delay mid-demo.
 
@@ -107,7 +107,7 @@ This demonstration highlights developing and running applications with Windows C
 
 ### Hello World with IIS
 
-> Many Microsoft shops are *very* new to containers and have found this section helpful. Feel free to skip this section if the audience is already familiar with container basics. 
+> Many Microsoft shops are *very* new to containers and have found this section helpful. Feel free to skip this section if the audience is already familiar with container basics.
 
 One of the key benefits of deploying workloads in containers is the sheer speed of deployment. To visualize this speed, I'm going to open the PowerShell ISE and fire up a few containers. This simple loop does two tasks:
 
@@ -119,8 +119,8 @@ One of the key benefits of deploying workloads in containers is the sheer speed 
 For ($i=1; $i -le 5; $i++) {
 
     # Create a container running IIS
-    docker run --detach --publish 80 microsoft/iis:nanoserver | 
-    
+    docker run --detach --publish 80 microsoft/iis:nanoserver |
+
     # Echo out IP address
     ForEach-Object { docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' $_ }
 
@@ -129,29 +129,29 @@ For ($i=1; $i -le 5; $i++) {
 
 ![screenshot](./media/001.png)
 
-In mere seconds, we have created 5 full instances of the IIS web server. Copying and pasting one of the IP addresses into a browser, we can see the familiar blue IIS start screen. This server is not running locally in my VM, but within an isolated Windows container. I do not even have the IIS feature installed on this developer VM. 
+In mere seconds, we have created 5 full instances of the IIS web server. Copying and pasting one of the IP addresses into a browser, we can see the familiar blue IIS start screen. This server is not running locally in my VM, but within an isolated Windows container. I do not even have the IIS feature installed on this developer VM.
 
 ![screenshot](./media/002.png)
 
-While a simple example, this same process with virtual machines would have invovled substantially longer boot times and system resources. The increased agility and lighter footprint of containers enables faster deployments  
+While a simple example, this same process with virtual machines would have invovled substantially longer boot times and system resources. The increased agility and lighter footprint of containers enables faster deployments
 
-Similar to the creation, removing these containers is equally fast with a line of PowerShell. Note that my host VM is entirely untouched, without files strewn across the disk or a variety of configuration options that I have to reset. The web server was entirely isolated without any impact to the host. 
+Similar to the creation, removing these containers is equally fast with a line of PowerShell. Note that my host VM is entirely untouched, without files strewn across the disk or a variety of configuration options that I have to reset. The web server was entirely isolated without any impact to the host.
 
 ```powershell
-docker rm --force $(docker ps -a -q)    
+docker rm --force $(docker ps -a -q)
 ```
 
 ### 2. Integrating Docker into an existing ASP.NET application and building an image
 
-Developing containerized applications does not drastictly change a developer's workflow. Opening Visual Studio, we have an existing ASP.NET MVC application. Clicking debug, we can see it running in a browser on my local VM. 
+Developing containerized applications does not drastictly change a developer's workflow. Opening Visual Studio, we have an existing ASP.NET MVC application. Clicking debug, we can see it running in a browser on my local VM.
 
-Transitioning this application to a container involves creating a Dockerfile. While we could manually create the file and add it to the web project, Visual Studio includes a set of features that make developing containers easier. Starting with Visual Studio 2015, Microsoft has provided the [Visual Studio Tools for Docker](https://docs.microsoft.com/en-us/dotnet/standard/containerized-lifecycle-architecture/design-develop-containerized-apps/visual-studio-tools-for-docker). Originally a separate plugin, Visual Studio 2017 includes the tools baked directly into the IDE, a sign of how important Microsoft views container development. Best of all, this feature is included in Visual Studio Community edition and does not require paid versions of Visual Studio. 
+Transitioning this application to a container involves creating a Dockerfile. While we could manually create the file and add it to the web project, Visual Studio includes a set of features that make developing containers easier. Starting with Visual Studio 2015, Microsoft has provided the [Visual Studio Tools for Docker](https://docs.microsoft.com/en-us/dotnet/standard/containerized-lifecycle-architecture/design-develop-containerized-apps/visual-studio-tools-for-docker). Originally a separate plugin, Visual Studio 2017 includes the tools baked directly into the IDE, a sign of how important Microsoft views container development. Best of all, this feature is included in Visual Studio Community edition and does not require paid versions of Visual Studio.
 
 Right clicking on the web project an hovering on **Add**, we can simply click **Docker Support**.
 
 ![screenshot](./media/008.png)
 
-Adding Docker support to our VS Solution scaffolds out several features. First is the Dockerfile. Visual Studio does its best to infer what type of application we are developing, and selects an appropriate base image for the `FROM` line. For this application, `FROM microsoft/aspnet:4.7` was selected, meaning that when we build our application Docker will download the aspnet base image from the Docker Hub on our behalf. Microsoft creates and maintains a vast array of images on Docker Hub, including [Windows Server Core](https://hub.docker.com/r/microsoft/windowsservercore/), [Nanoserver](https://hub.docker.com/r/microsoft/nanoserver/), [IIS](https://hub.docker.com/r/microsoft/iis/), [aspnet](https://hub.docker.com/r/microsoft/aspnet/), [aspnetcore](https://hub.docker.com/r/microsoft/aspnetcore/),  [WCF](https://hub.docker.com/r/microsoft/wcf/), and [SQL](https://hub.docker.com/r/microsoft/mssql-server-windows-express/). The Dockerfiles that they use to build these images are also provided on [GitHub](https://github.com/Microsoft/aspnet-docker) so that users can reverse-engineer and customize images to their specific needs. 
+Adding Docker support to our VS Solution scaffolds out several features. First is the Dockerfile. Visual Studio does its best to infer what type of application we are developing, and selects an appropriate base image for the `FROM` line. For this application, `FROM microsoft/aspnet:4.7` was selected, meaning that when we build our application Docker will download the aspnet base image from the Docker Hub on our behalf. Microsoft creates and maintains a vast array of images on Docker Hub, including [Windows Server Core](https://hub.docker.com/r/microsoft/windowsservercore/), [Nanoserver](https://hub.docker.com/r/microsoft/nanoserver/), [IIS](https://hub.docker.com/r/microsoft/iis/), [aspnet](https://hub.docker.com/r/microsoft/aspnet/), [aspnetcore](https://hub.docker.com/r/microsoft/aspnetcore/),  [WCF](https://hub.docker.com/r/microsoft/wcf/), and [SQL](https://hub.docker.com/r/microsoft/mssql-server-windows-express/). The Dockerfiles that they use to build these images are also provided on [GitHub](https://github.com/Microsoft/aspnet-docker) so that users can reverse-engineer and customize images to their specific needs.
 
 Images on Docker Hub, while created and maintained directly by Microsoft, are only a starting point. Most organizations take the aspnet image from Docker Hub, customize it to match their specific corporate standards, and push   it to their private registry as a "golden image". A developer would then start with that golden image on the `FROM` line, rather than the vanilla aspnet from Microsoft.
 
@@ -183,17 +183,17 @@ Sharing of Docker images happens through the Docker Trusted Registry, or "DTR". 
 docker images
 ```
 
-Logging into our private DTR requires a username and password, which can be conveniently synced from Active Directory. 
+Logging into our private DTR requires a username and password, which can be conveniently synced from Active Directory.
 
 ```powershell
 docker login dtr.ishmael.in
 ```
 
-After the login command we can push the image to DTR. By default, Visual Studio built an image with the `:dev` tag that wired in the debugging support for a local developer. For uploading into DTR we prefer to build a "release" image, which we can generate by toggling the Solution Configuration box from **Debug** to **Release** and then re-building the solution. 
+After the login command we can push the image to DTR. By default, Visual Studio built an image with the `:dev` tag that wired in the debugging support for a local developer. For uploading into DTR we prefer to build a "release" image, which we can generate by toggling the Solution Configuration box from **Debug** to **Release** and then re-building the solution.
 
 ![screenshot](./media/013.png)
 
-Once the configuration has been toggled to **Release**, re-build the solution by either pressing **CTRL-F5** or via the Build menu. 
+Once the configuration has been toggled to **Release**, re-build the solution by either pressing **CTRL-F5** or via the Build menu.
 
 ![screenshot](./media/014.png)
 
@@ -205,13 +205,13 @@ docker push dtr.ishmael.in/contoso/webapp:latest
 
 ![screenshot](./media/015.png)
 
-Once an image has been pushed, DTR begins a binary-level security scan through each image layer. This scan is searching for known vulnerabilities, and uses 7 industry-standard CVE databases. Were there to be an issue identified, we can configure Webhooks to notify the operators that a vulnerability is present on a particular image. For clean scans, we also have the option of automatically promoting an image from a "dev" repo into a "test" repo, streamlining our quality assurance efforts. 
+Once an image has been pushed, DTR begins a binary-level security scan through each image layer. This scan is searching for known vulnerabilities, and uses 7 industry-standard CVE databases. Were there to be an issue identified, we can configure Webhooks to notify the operators that a vulnerability is present on a particular image. For clean scans, we also have the option of automatically promoting an image from a "dev" repo into a "test" repo, streamlining our quality assurance efforts.
 
 ### 4. Deploying an image to a cluster with UCP
 
 With our image pushed and scanned by DTR, it is time to deploy a container to our cluster. Manging the entirety of the cluster is the Universal Control Plane, or "UCP". UCP is a single plane of glass that interfaces both with container specific constructs such as containers and secrets, but also monitors underlying infrastructure nodes. Its rich UI experience takes Docker management out of the command line and into a more convenient browser window. Think of UCP as the [SCOM](https://en.wikipedia.org/wiki/System_Center_Operations_Manager) (System Center Operations Manager) of the container world.
 
->   Windows Containers [do not suppport](https://docs.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/swarm-mode#deploying-services-to-a-swarm) the ingress routing mesh, and published ports must use Host Mode + DNS Round Robin. This limitation [goes away](https://blogs.technet.microsoft.com/virtualization/2017/09/26/dockers-ingress-routing-mesh-available-with-windows-server-version-1709/) with Windows Server 1709, but 1709 is not currently supported in UCP. In the interim, a reverse-proxy in front of several Windows Container instances is an option.
+> Windows Containers [do not suppport](https://docs.microsoft.com/en-us/virtualization/windowscontainers/manage-containers/swarm-mode#deploying-services-to-a-swarm) the ingress routing mesh, and published ports must use Host Mode + DNS Round Robin. This limitation [goes away](https://blogs.technet.microsoft.com/virtualization/2017/09/26/dockers-ingress-routing-mesh-available-with-windows-server-version-1709/) with Windows Server 1709, but 1709 is not currently supported in UCP. In the interim, a reverse-proxy in front of several Windows Container instances is an option.
 
 One of the key benefits of Docker containers is the abiilty to easily deploy and manage an entire solution via a declarative text file, or "Stack" file. Stack files could the web front end, API, and database tiers for a traditional 3-tier web application, and can even include sensitive Docker Secrets, virtual network configurations, storage mount setup. From a lifecycle management perspective, we can remove the entire solution in one operation, rather than having to track down pieces spread across multiple nodes.
 
@@ -225,8 +225,8 @@ services:
   lb:
     image: traefik:latest
     command: >
-      --web 
-      --docker 
+      --web
+      --docker
       --docker.swarmmode
       --docker.watch
       --docker.domain=apps.ishmael.in
@@ -235,7 +235,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       - "80:80"
-      - 8080  
+      - 8080
     deploy:
       placement:
         constraints:
@@ -259,7 +259,7 @@ services:
 
 ![screenshot](./media/016.png)
 
-Click **Create** and we can see that UCP deployed two Services. Wait until both turn green, and since Traefik handled setting up a subdomain for our application, open a browser tab to `http://hello-web.apps.ishmael.in/`. 
+Click **Create** and we can see that UCP deployed two Services. Wait until both turn green, and since Traefik handled setting up a subdomain for our application, open a browser tab to `http://hello-web.apps.ishmael.in/`.
 
 ![screenshot](./media/017.png)
 
@@ -279,7 +279,7 @@ By adjusting **Scale** to `5`, we can provision an additional 4 containers for o
 
 > To show rolling updates, you can go back into Visual Studio, make an edit to the UI view, `Visual Studio re-build` -> `docker tag` -> `docker push` that new image up to DTR, or before the demo even starts, push a tagged image into the same repo on a tag other than `latest`. Feel free to `docker pull stevenfollis/howdy:2.0` then re-tag and push to DTR to match the screenshots below (it's the same ASP.NET web app, but I added a field in the UI to display the current container). I prefer the latter option as it's a smoother demo flow.
 
-UCP also gives us sophisticated abilities to manage how we roll updated code into production. Back in UCP, let's change our image tag to `dtr.ishmael.in/contoso/webapp:2.0`, and set for scheduling adjust the **Parallelism** to `1` and the **Update Delay** to `10`. This tells UCP to scale up one container at a time, waiting 10 seconds between each operation. By gradually "rolling" our updates onto the cluster, we can more readily detect failures and take corrective action. By default we have set UCP to pause an update, however we could automatically roll back the deployment to its previously known "good" state with an additional configuration. 
+UCP also gives us sophisticated abilities to manage how we roll updated code into production. Back in UCP, let's change our image tag to `dtr.ishmael.in/contoso/webapp:2.0`, and set for scheduling adjust the **Parallelism** to `1` and the **Update Delay** to `10`. This tells UCP to scale up one container at a time, waiting 10 seconds between each operation. By gradually "rolling" our updates onto the cluster, we can more readily detect failures and take corrective action. By default we have set UCP to pause an update, however we could automatically roll back the deployment to its previously known "good" state with an additional configuration.
 
 ![screenshot](./media/020.png)
 
