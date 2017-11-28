@@ -8,5 +8,6 @@ This repository is a collection of demonstration scripts and supporting files fo
 | --- | --- | --- |
 | [Azure Intro](./00-azure-intro) | Stable | Overview of Azure including EE deployment options |
 | [Windows Containers Hello World](./01-hello-world) | Stable | Introduction to Windows Containers including simple demonstrations |
+| [SQL Server](./02-sql) | To-Do | Running MSSQL workloads in Windows Containers |
 | [Visual Studio Team Services](./03-vsts) | To-Do | Integrating CI/CD with Docker EE via [VSTS](https://www.visualstudio.com/team-services/) |
 | [IOT Edge](./04-iot) | To-Do | Managing IOT Edge module containers with DTR |
