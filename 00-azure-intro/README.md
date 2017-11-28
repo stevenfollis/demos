@@ -53,6 +53,33 @@ Azure has a well-regarded CLI for managing the lifecycle of Azure Resources. [In
 
 A capable alternative is the [Cloud Shell](https://docs.microsoft.com/en-us/azure/cloud-shell/overview) integrated into the Azure Portal.
 
+## Volumes
+
+An [Azure Storage](https://docs.microsoft.com/en-us/azure/storage/common/storage-introduction) account includes three services: Blob Storage, Queue Storage, and File Storage. [Azure Files](https://docs.microsoft.com/en-us/azure/storage/common/storage-introduction#azure-files) can be mounted as an SMB 3.0 file share, and is the backend storage for two [Volume Drivers](https://docs.docker.com/engine/admin/volumes/volumes/).
+
+### Cloudstor
+
+The [Cloudstor](https://docs.docker.com/docker-for-azure/persistent-data-volumes/#use-cloudstor) plugin is a closed source plugin developed by Docker as part of the Docker EE for Azure project. It is bundled with EE for Azure, however can be installed independently:
+
+    ```
+    docker plugin install \
+        --alias azure \
+        --grant-all-permissions \
+        docker4x/cloudstor:17.09.0-ce-azure1  \
+        CLOUD_PLATFORM=AZURE \
+        AZURE_STORAGE_ACCOUNT="[MY-STORAGE-ACCOUNT-NAME]" \
+        AZURE_STORAGE_ACCOUNT_KEY="[MY-STORAGE-ACCOUNT-KEY]" \
+        DEBUG=1
+    ```
+
+### Docker Volume Driver for Azure File Storage
+
+The [azurefile-dockervolumedriver](https://github.com/Azure/azurefile-dockervolumedriver) project was developed by Microsoft but does not appear to be maintained as of 11/28/2017 (last commit being 10/12/2016).
+
+### Kubernetes Azure File Volume
+
+Azure File Storage can be used via a [Kubernetes Volume](https://github.com/kubernetes/examples/tree/master/staging/volumes/azure_file), assuming `cifs-utils` is installed on the host node.
+
 ## Resources
 
 | Resource | Description |
